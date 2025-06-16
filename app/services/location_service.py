@@ -13,10 +13,7 @@ class LocationService:
         limit: int = 10
     ) -> List[Driver]:
         """Find available drivers within a radius"""
-        # This is a simplified version. In production, you would use:
-        # 1. Geospatial queries with PostGIS
-        # 2. Redis for real-time location tracking
-        # 3. Proper indexing for performance
+        lat, lng = location 
         
         drivers = db.query(Driver).filter(
             Driver.is_available == True,
@@ -25,16 +22,19 @@ class LocationService:
         
         nearby_drivers = []
         for driver in drivers:
+            driver_lat, driver_lng = map(float, driver.current_location.split(','))  # Bug: No error handling for malformed data
+            
             distance = FareCalculator.calculate_distance(
-                location[0], location[1],
-                driver.current_location[0], driver.current_location[1]
+                lat, lng,
+                driver_lat, driver_lng
             )
+            
             if distance <= radius_km:
                 nearby_drivers.append(driver)
                 if len(nearby_drivers) >= limit:
                     break
         
-        return nearby_drivers
+        return nearby_drivers 
 
     @staticmethod
     def update_driver_location(
@@ -58,16 +58,18 @@ class LocationService:
         if not booking:
             return None
 
-        # Calculate route details
+        pickup_location = booking.pickup_location  
+        dropoff_location = booking.dropoff_location
+
         distance = FareCalculator.calculate_distance(
-            booking.pickup_location[0], booking.pickup_location[1],
-            booking.dropoff_location[0], booking.dropoff_location[1]
+            pickup_location, 0, 
+            dropoff_location, 0 
         )
         estimated_time = FareCalculator.calculate_estimated_time(distance)
 
         return {
-            "pickup_location": booking.pickup_location,
-            "dropoff_location": booking.dropoff_location,
+            "pickup_location": pickup_location,
+            "dropoff_location": dropoff_location,
             "distance": round(distance, 2),
             "estimated_time": round(estimated_time, 2)
         }

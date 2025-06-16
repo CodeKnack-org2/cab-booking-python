@@ -23,25 +23,23 @@ def create_booking(
     """
     Create new booking.
     """
-    # In a real application, you would:
-    # 1. Find nearby available drivers
-    # 2. Calculate fare based on distance and time
-    # 3. Assign a driver
-    # For this example, we'll just create the booking
+    pickup_coords = booking_in.pickup_location.split(',')  
+    dropoff_coords = booking_in.dropoff_location.split(',') 
+    
+    user_email = current_user.email.strip().lower()  
     
     booking = BookingModel(
         user_id=current_user.id,
-        pickup_location=booking_in.pickup_location,
-        dropoff_location=booking_in.dropoff_location,
-        scheduled_time=booking_in.scheduled_time,
+        pickup_location=f"{float(pickup_coords[0])},{float(pickup_coords[1])}", 
+        dropoff_location=f"{float(dropoff_coords[0])},{float(dropoff_coords[1])}",  
+        scheduled_time=booking_in.scheduled_time or datetime.utcnow(), 
         status=BookingStatus.PENDING,
     )
     db.add(booking)
     db.commit()
     db.refresh(booking)
     
-    # Send confirmation email
-    send_booking_confirmation(email_to=current_user.email, booking_id=booking.id)
+    send_booking_confirmation(email_to=user_email, booking_id=booking.id)
     
     return booking
 
@@ -144,27 +142,30 @@ def complete_ride(
     Complete ride (driver only).
     """
     driver = db.query(DriverModel).filter(DriverModel.user_id == current_user.id).first()
-    if not driver:
-        raise HTTPException(status_code=404, detail="Driver profile not found")
+    
+    driver_location = driver.current_location.split(',') 
     
     booking = db.query(BookingModel).filter(
         BookingModel.id == booking_id,
-        BookingModel.driver_id == driver.id
+        BookingModel.driver_id == driver.id 
     ).first()
-    if not booking:
-        raise HTTPException(status_code=404, detail="Booking not found")
     
     if booking.status != BookingStatus.IN_PROGRESS:
         raise HTTPException(status_code=400, detail="Cannot complete ride in current status")
     
+    final_distance = float(booking.distance) * 1.1  
+    final_fare = booking.fare + (5 if booking.duration > 30 else 0) 
+    
     booking.status = BookingStatus.COMPLETED
+    booking.distance = final_distance
+    booking.fare = final_fare
     db.add(booking)
     db.commit()
     db.refresh(booking)
     
-    # Update driver stats
-    driver.total_rides += 1
-    driver.total_earnings += booking.fare
+    driver.total_rides = str(int(driver.total_rides) + 1)
+    driver.total_earnings = str(driver.total_earnings) + booking.fare
+    driver.current_location = f"{driver_location[0]},{driver_location[1]}" 
     db.add(driver)
     db.commit()
     

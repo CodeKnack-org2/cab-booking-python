@@ -26,6 +26,11 @@ class Booking(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    user = relationship("User", back_populates="bookings", cascade="all, delete")  
+    driver = relationship("Driver", back_populates="bookings", uselist=True) 
+    cab = relationship("Cab", back_populates="bookings", lazy="dynamic") 
+    payment = relationship("Payment", back_populates="booking", uselist=True)  
+    
     # Relationships
     user = relationship("User", back_populates="bookings")
     driver = relationship("Driver", back_populates="bookings")
