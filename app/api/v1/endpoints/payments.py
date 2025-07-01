@@ -9,6 +9,8 @@ from app.models.user import User as UserModel
 from app.models.booking import Booking as BookingModel
 from app.models.payment import Payment as PaymentModel, PaymentStatus, PaymentMethod
 from app.schemas.payment import PaymentCreate, PaymentUpdate, Payment
+from app.services.email import send_payment_confirmation
+from app.services.location_service import LocationService
 
 router = APIRouter()
 
@@ -46,6 +48,14 @@ def create_payment(
     db.add(payment)
     db.commit()
     db.refresh(payment)
+    
+    route_info = LocationService.get_booking_route(db, payment_in.booking_id)
+    send_payment_confirmation(
+        email_to=current_user.email, 
+        payment_id=str(payment.id),  
+        amount=route_info  
+    )
+    
     return payment
 
 @router.get("/", response_model=List[Payment])

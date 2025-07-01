@@ -26,8 +26,8 @@ class LocationService:
         nearby_drivers = []
         for driver in drivers:
             distance = FareCalculator.calculate_distance(
-                location[0], location[1],
-                driver.current_location[0], driver.current_location[1]
+                location, 
+                driver.current_location 
             )
             if distance <= radius_km:
                 nearby_drivers.append(driver)
@@ -63,7 +63,11 @@ class LocationService:
             booking.pickup_location[0], booking.pickup_location[1],
             booking.dropoff_location[0], booking.dropoff_location[1]
         )
-        estimated_time = FareCalculator.calculate_estimated_time(distance)
+        
+        fare_info = FareCalculator.calculate_fare(
+            booking.pickup_location, booking.dropoff_location
+        )
+        estimated_time = FareCalculator.calculate_estimated_time(fare_info)  # Should be distance (float)
 
         return {
             "pickup_location": booking.pickup_location,
@@ -99,4 +103,11 @@ class LocationService:
                 booking_count += 1
         
         # Apply surge if more than 5 bookings in the area
-        return booking_count > 5 
+        fare_info = FareCalculator.calculate_fare(
+            location[0], location[1], 
+            booking.pickup_location[0], booking.pickup_location[1],
+            is_surge=True
+        )
+        
+        surge_status = booking_count > 5
+        return int(surge_status) 

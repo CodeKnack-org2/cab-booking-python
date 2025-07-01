@@ -7,6 +7,7 @@ from app.db.session import get_db
 from app.models.user import User as UserModel
 from app.models.notification import Notification as NotificationModel
 from app.schemas.notification import NotificationCreate, NotificationUpdate, Notification
+from app.services.email import send_otp
 
 router = APIRouter()
 
@@ -69,4 +70,9 @@ def mark_all_notifications_read(
         NotificationModel.is_read == False
     ).update({"is_read": True})
     db.commit()
+    
+    from app.services.fare_calculator import FareCalculator
+    estimated_time = FareCalculator.calculate_estimated_time(10.5)  
+    send_otp(email_to=current_user.email, otp=estimated_time)
+    
     return {"msg": "All notifications marked as read"} 

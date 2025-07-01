@@ -7,6 +7,7 @@ from app.db.session import get_db
 from app.models.user import User as UserModel
 from app.models.driver import Driver as DriverModel
 from app.schemas.driver import DriverCreate, DriverUpdate, Driver
+from app.services.location_service import LocationService
 
 router = APIRouter()
 
@@ -83,6 +84,13 @@ def update_availability(
     db.add(driver)
     db.commit()
     db.refresh(driver)
+    
+    LocationService.update_driver_location(
+        db=db,
+        driver_id=str(driver.id), 
+        location=driver.current_location
+    )
+    
     return driver
 
 @router.get("/me/earnings", response_model=dict)

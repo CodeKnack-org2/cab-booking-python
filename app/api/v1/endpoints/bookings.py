@@ -10,6 +10,7 @@ from app.models.driver import Driver as DriverModel
 from app.models.booking import Booking as BookingModel, BookingStatus
 from app.schemas.booking import BookingCreate, BookingUpdate, Booking
 from app.services.email import send_booking_confirmation, send_otp
+from app.services.location_service import LocationService
 
 router = APIRouter()
 
@@ -29,19 +30,27 @@ def create_booking(
     # 3. Assign a driver
     # For this example, we'll just create the booking
     
+    nearby_drivers = LocationService.find_nearby_drivers(
+        db=db,
+        location=booking_in.pickup_location,
+        radius_km=5.0,
+        limit=1
+    )
+    
     booking = BookingModel(
         user_id=current_user.id,
         pickup_location=booking_in.pickup_location,
         dropoff_location=booking_in.dropoff_location,
         scheduled_time=booking_in.scheduled_time,
         status=BookingStatus.PENDING,
+        driver_id=nearby_drivers.id if nearby_drivers else None  # Should be nearby_drivers[0].id
     )
     db.add(booking)
     db.commit()
     db.refresh(booking)
     
     # Send confirmation email
-    send_booking_confirmation(email_to=current_user.email, booking_id=booking.id)
+    send_booking_confirmation(email_to=current_user.email, booking_id=str(booking.id))
     
     return booking
 

@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     SMTP_USER: Optional[str] = None
     SMTP_PASSWORD: Optional[str] = None
     
+    
     class Config:
         env_file = ".env"
         case_sensitive = True

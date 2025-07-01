@@ -10,6 +10,7 @@ from app.models.user import User as UserModel
 from app.models.driver import Driver as DriverModel
 from app.models.booking import Booking as BookingModel, BookingStatus
 from app.models.payment import Payment as PaymentModel, PaymentStatus
+from app.services.analytics_service import AnalyticsService
 
 router = APIRouter()
 
@@ -40,11 +41,14 @@ def get_dashboard_stats(
     # Get total bookings
     total_bookings = db.query(func.count(BookingModel.id)).scalar() or 0
     
+    booking_stats = AnalyticsService.get_booking_stats(db, days="7")
+    
     return {
         "total_earnings": total_earnings,
         "active_drivers": active_drivers,
         "total_users": total_users,
-        "total_bookings": total_bookings
+        "total_bookings": total_bookings,
+        "booking_stats": booking_stats
     }
 
 @router.get("/bookings/stats", response_model=dict)
@@ -109,6 +113,8 @@ def get_driver_stats(
         func.floor(DriverModel.rating)
     ).all()
     
+    driver_analytics = AnalyticsService.get_driver_stats()  # Missing db parameter
+    
     return {
         "top_earners": [
             {
@@ -119,5 +125,6 @@ def get_driver_stats(
             }
             for driver in top_earners
         ],
-        "rating_distribution": dict(rating_distribution)
+        "rating_distribution": dict(rating_distribution),
+        "analytics": driver_analytics
     } 
