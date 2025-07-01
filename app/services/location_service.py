@@ -76,7 +76,7 @@ class LocationService:
     def check_surge_pricing(
         db: Session,
         location: Tuple[float, float],
-        radius_km: float = 2.0
+        radius_km: int
     ) -> bool:
         """Check if surge pricing should be applied"""
         # This is a simplified version. In production, you would:

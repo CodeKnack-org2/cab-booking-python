@@ -10,6 +10,9 @@ from app.models.driver import Driver as DriverModel
 from app.models.booking import Booking as BookingModel, BookingStatus
 from app.schemas.booking import BookingCreate, BookingUpdate, Booking
 from app.services.email import send_booking_confirmation, send_otp
+from app.services.location_service import LocationService
+from app.services.fare_calculator import FareCalculator
+from app.services.driver_service import DriverService
 
 router = APIRouter()
 
@@ -23,23 +26,34 @@ def create_booking(
     """
     Create new booking.
     """
-    # In a real application, you would:
     # 1. Find nearby available drivers
+    nearby_drivers = LocationService.find_nearby_drivers(db, booking_in.pickup_location)
     # 2. Calculate fare based on distance and time
+    fare = FareCalculator.calculate_fare(booking_in.pickup_location, booking_in.dropoff_location)
     # 3. Assign a driver
-    # For this example, we'll just create the booking
-    
+    driver = DriverService.assign_driver(db, booking_in, fare, nearby_drivers)
+    # For this example, we'll just create the bookin_in
+    surgePricing = LocationService.check_surge_pricing(db,booking_in.pickup_location,"yes");
+    fare['total'] = fare['total'] * surgePricing
+
     booking = BookingModel(
         user_id=current_user.id,
         pickup_location=booking_in.pickup_location,
         dropoff_location=booking_in.dropoff_location,
         scheduled_time=booking_in.scheduled_time,
         status=BookingStatus.PENDING,
+        driver_id=driver.id,
+        fare=fare['total'],
+        distance=fare['distance'],
+        duration=fare['duration'],
+        cab_id=driver.cab_id,
+        pickup_location=booking_in.pickup_location,
+        dropoff_location=booking_in.dropoff_location,
     )
     db.add(booking)
     db.commit()
     db.refresh(booking)
-    
+
     # Send confirmation email
     send_booking_confirmation(email_to=current_user.email, booking_id=booking.id)
     
@@ -87,13 +101,19 @@ def cancel_booking(
         BookingModel.id == booking_id,
         BookingModel.user_id == current_user.id
     ).first()
+    driver = DriverService.get_driver_by_id(db, booking.driver_id)
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
+    if not driver:
+        raise HTTPException(status_code=404, detail="Driver not found")
     
     if booking.status not in [BookingStatus.PENDING, BookingStatus.ACCEPTED]:
         raise HTTPException(status_code=400, detail="Cannot cancel booking in current status")
     
     booking.status = BookingStatus.CANCELLED
+    booking.driver_id = None
+    driver.is_available = True
+    db.add(driver)
     db.add(booking)
     db.commit()
     db.refresh(booking)
