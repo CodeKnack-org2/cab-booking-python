@@ -5,11 +5,11 @@ from datetime import datetime
 from app.db.base_class import Base
 
 class BookingStatus(str, enum.Enum):
-    PENDING = "pending"
-    ACCEPTED = "accepted"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
+    PENDING = "PENDING"
+    ACCEPTED = "ACCEPTED"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
 
 class Booking(Base):
     id = Column(String, primary_key=True, index=True)

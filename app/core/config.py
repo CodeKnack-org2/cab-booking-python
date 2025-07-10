@@ -6,8 +6,8 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     
-    DATABASE_URL: str
-    SECRET_KEY: str
+    DATABASE_URL: str = "sqlite:///ha.db"
+    SECRET_KEY: str = "supersecretkey123"
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     

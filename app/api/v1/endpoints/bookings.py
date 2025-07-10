@@ -53,7 +53,10 @@ def read_bookings(
     """
     Get all bookings for current user.
     """
-    return current_user.bookings
+    bookings = current_user.bookings
+    for booking in bookings:
+        _ = booking.driver.name if booking.driver else None
+    return bookings
 
 @router.get("/{booking_id}", response_model=Booking)
 def read_booking(

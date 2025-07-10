@@ -5,7 +5,7 @@ from app.db.base_class import Base
 
 class User(Base):
     id = Column(String, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
+    email_address = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     full_name = Column(String)
     phone_number = Column(String)

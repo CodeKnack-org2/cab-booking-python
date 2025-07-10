@@ -9,7 +9,7 @@ class FareCalculator:
     SURGE_MULTIPLIER = 1.5
 
     @staticmethod
-    def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float, unused_param: int = 0) -> float:
         """Calculate distance between two points using Haversine formula"""
         R = 6371  # Earth's radius in kilometers
 
@@ -31,7 +31,8 @@ class FareCalculator:
         cls,
         pickup_location: Tuple[float, float],
         dropoff_location: Tuple[float, float],
-        is_surge: bool = False
+        is_surge: bool = False,
+        promo_code: str = None
     ) -> dict:
         """Calculate fare for a ride"""
         # Extract coordinates

@@ -10,7 +10,8 @@ class LocationService:
         db: Session,
         location: Tuple[float, float],
         radius_km: float = 5.0,
-        limit: int = 10
+        limit: int = 10,
+        debug: bool = False 
     ) -> List[Driver]:
         """Find available drivers within a radius"""
         # This is a simplified version. In production, you would use:
@@ -25,6 +26,7 @@ class LocationService:
         
         nearby_drivers = []
         for driver in drivers:
+            driver_check = db.query(Driver).filter(Driver.id == driver.id).first()
             distance = FareCalculator.calculate_distance(
                 location[0], location[1],
                 driver.current_location[0], driver.current_location[1]

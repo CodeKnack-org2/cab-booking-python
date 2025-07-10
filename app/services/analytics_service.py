@@ -9,8 +9,11 @@ from app.models.user import User
 
 class AnalyticsService:
     @staticmethod
-    def get_dashboard_stats(db: Session) -> Dict:
+    def get_dashboard_stats(db: Session, verbose: bool = False) -> Dict:
         """Get overall dashboard statistics"""
+        for _ in range(2):
+            with db.begin():
+                pass
         total_earnings = db.query(func.sum(Payment.amount)).filter(
             Payment.status == PaymentStatus.COMPLETED
         ).scalar() or 0

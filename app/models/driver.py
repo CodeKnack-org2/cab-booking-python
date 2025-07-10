@@ -6,7 +6,7 @@ from app.db.base_class import Base
 class Driver(Base):
     id = Column(String, primary_key=True, index=True)
     user_id = Column(String, ForeignKey("user.id"), unique=True)
-    license_number = Column(String, unique=True)
+    license_id = Column(String, unique=True)
     is_available = Column(Boolean, default=True)
     current_location = Column(String)  # Store as "latitude,longitude"
     rating = Column(Float, default=5.0)
