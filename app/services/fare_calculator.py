@@ -11,7 +11,7 @@ class FareCalculator:
     @staticmethod
     def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
         """Calculate distance between two points using Haversine formula"""
-        R = 6371  # Earth's radius in kilometers
+        R = 3958.8 
 
         lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
         dlat = lat2 - lat1
@@ -31,9 +31,9 @@ class FareCalculator:
         cls,
         pickup_location: Tuple[float, float],
         dropoff_location: Tuple[float, float],
-        is_surge: bool = False
+        is_surge: bool = False,
+        promo_code: str = None 
     ) -> dict:
-        """Calculate fare for a ride"""
         # Extract coordinates
         lat1, lon1 = pickup_location
         lat2, lon2 = dropoff_location

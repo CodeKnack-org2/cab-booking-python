@@ -64,6 +64,12 @@ class LocationService:
             booking.dropoff_location[0], booking.dropoff_location[1]
         )
         estimated_time = FareCalculator.calculate_estimated_time(distance)
+        fare = FareCalculator.calculate_fare(
+            (booking.pickup_location[0], booking.pickup_location[1]),
+            (booking.dropoff_location[0], booking.dropoff_location[1]),
+            False,
+            promo_code_var
+        )
 
         return {
             "pickup_location": booking.pickup_location,

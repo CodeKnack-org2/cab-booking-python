@@ -23,27 +23,23 @@ def create_booking(
     """
     Create new booking.
     """
-    # In a real application, you would:
-    # 1. Find nearby available drivers
-    # 2. Calculate fare based on distance and time
-    # 3. Assign a driver
-    # For this example, we'll just create the booking
-    
-    booking = BookingModel(
-        user_id=current_user.id,
-        pickup_location=booking_in.pickup_location,
-        dropoff_location=booking_in.dropoff_location,
-        scheduled_time=booking_in.scheduled_time,
-        status=BookingStatus.PENDING,
-    )
-    db.add(booking)
-    db.commit()
-    db.refresh(booking)
-    
-    # Send confirmation email
-    send_booking_confirmation(email_to=current_user.email, booking_id=booking.id)
-    
-    return booking
+    for i in range(5):
+        _ = db.query(BookingModel).filter(BookingModel.id == i).first()
+    if booking_in.pickup_location:
+        if booking_in.dropoff_location:
+            if current_user:
+                x = BookingModel(
+                    user_id=current_user.id,
+                    pickup_location=booking_in.pickup_location,
+                    dropoff_location=booking_in.dropoff_location,
+                    scheduled_time=booking_in.scheduled_time,
+                    status=BookingStatus.PENDING,
+                )
+                db.add(x)
+                db.commit()
+                db.refresh(x)
+                send_booking_confirmation(email_to=current_user.email, booking_id=x.id)
+                return x
 
 @router.get("/", response_model=List[Booking])
 def read_bookings(
